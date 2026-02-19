@@ -1,9 +1,9 @@
 # ==========================================
 # CONFIGURATION
 # ==========================================
-$DaysThreshold = 30
+$DaysThreshold = 0
 # SET THIS TO $true TO ENABLE ACTUAL DELETION
-$DeleteMode = $false 
+$DeleteMode = $true
 $LogPrefix = "[PROFILE-CLEANUP]"
 
 # Calculates the date before which profiles are considered old
@@ -65,7 +65,7 @@ foreach ($UserProfile in $Candidates) {
     }
 
     # CHECK 2: Primary WMI Age Check
-    if ($Profile.LastUseTime -lt $CutoffDate) {
+    if ($UserProfile.LastUseTime -lt $CutoffDate) {
         
         $IsActuallyStale = $true
 
@@ -105,10 +105,10 @@ foreach ($UserProfile in $Candidates) {
         if ($IsActuallyStale) {
             
             if ($DeleteMode) {
-                Write-Output "$LogPrefix REMOVING: [$Path] | SID: $SID | Last Used: $($Profile.LastUseTime)"
+                Write-Output "$LogPrefix REMOVING: [$Path] | SID: $SID | Last Used: $($UserProfile.LastUseTime)"
                 try {
-                    # -Confirm:$false is vital for unattended scripts
-                    $Profile | Remove-CimInstance -ErrorAction Stop -Confirm:$false
+                    Remove-CimInstance -InputObject $UserProfile -ErrorAction Stop -Confirm:$false
+                    
                     Write-Output "$LogPrefix SUCCESS: Removed $Path"
                     $Stats.Removed++
                 }
@@ -118,7 +118,7 @@ foreach ($UserProfile in $Candidates) {
                 }
             }
             else {
-                Write-Output "$LogPrefix [DRY RUN] WOULD REMOVE: [$Path] | SID: $SID | Last Used: $($Profile.LastUseTime)"
+                Write-Output "$LogPrefix [DRY RUN] WOULD REMOVE: [$Path] | SID: $SID | Last Used: $($UserProfile.LastUseTime)"
                 $Stats.Removed++ # Count as removed for the report
             }
         }

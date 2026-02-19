@@ -1,9 +1,9 @@
 # ==========================================
 # CONFIGURATION
 # ==========================================
-$DaysThreshold = 0
+$DaysThreshold = 30
 # SET THIS TO $true TO ENABLE ACTUAL DELETION
-$DeleteMode = $true
+$DeleteMode = $false
 $LogPrefix = "[PROFILE-CLEANUP]"
 
 # Calculates the date before which profiles are considered old

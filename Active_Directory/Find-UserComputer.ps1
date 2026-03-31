@@ -128,7 +128,7 @@ $Results = $Computers | ForEach-Object -Parallel {
 # ── 4. Report ──
 if ($Results) {
     Write-Host "`n✅ '$Username' found on $($Results.Count) machine(s):" -ForegroundColor Green
-    $Results | Format-Table -AutoSize
+    $Results | Format-Table -AutoSize | Out-Host
 }
 else {
     Write-Host "`n❌ '$Username' was not found on any of the $($Computers.Count) scanned computers." -ForegroundColor Yellow

@@ -136,5 +136,7 @@ else {
 
 Write-Host "Scan complete." -ForegroundColor Cyan
 
-# Pass objects to the pipeline so callers can pipe to Export-Csv, etc.
-return $Results
+# Only emit raw objects when the script is being piped to something
+if ($MyInvocation.PipelineLength -gt 1) {
+    $Results
+}

@@ -59,7 +59,7 @@ Write-Host "Retrieving computers active in the last $DaysInactive days..." -Fore
 $Computers = Get-ADComputer `
     -Filter "Enabled -eq 'true' -and LastLogonTimestamp -gt $DateCutoff" `
     -Properties Name |
-    Select-Object -ExpandProperty Name
+Select-Object -ExpandProperty Name
 
 if (-not $Computers) {
     Write-Warning "No active computers found. Try increasing -DaysInactive."
@@ -71,9 +71,9 @@ Write-Host "Scanning $($Computers.Count) computers (ThrottleLimit: $ThrottleLimi
 # ── 3. Parallel scan ──
 $Results = $Computers | ForEach-Object -Parallel {
 
-    $Computer       = $_
-    $User           = $using:Username
-    $PingTimeout    = $using:PingTimeoutSeconds
+    $Computer = $_
+    $User = $using:Username
+    $PingTimeout = $using:PingTimeoutSeconds
 
     # Fast-fail: skip unreachable machines
     if (-not (Test-Connection -ComputerName $Computer -Count 1 -Quiet -TimeoutSeconds $PingTimeout)) {
@@ -91,21 +91,21 @@ $Results = $Computers | ForEach-Object -Parallel {
             # Two formats depending on whether SESSIONNAME is present:
             #   USER  SESSION  ID  STATE  IDLE   LOGON
             #   USER           ID  STATE  IDLE   LOGON   (disconnected — no session name)
-            $Session  = 'N/A'
-            $State    = 'Unknown'
+            $Session = 'N/A'
+            $State = 'Unknown'
             $IdleTime = 'Unknown'
-            $Logon    = 'Unknown'
+            $Logon = 'Unknown'
 
             if ($Line -match '^\s*>?(\S+)\s+(console|rdp-tcp\S*)\s+(\d+)\s+(\S+)\s+(\S+)\s+(.+)$') {
-                $Session  = $Matches[2]
-                $State    = $Matches[4]
+                $Session = $Matches[2]
+                $State = $Matches[4]
                 $IdleTime = $Matches[5]
-                $Logon    = $Matches[6].Trim()
+                $Logon = $Matches[6].Trim()
             }
             elseif ($Line -match '^\s*>?(\S+)\s+(\d+)\s+(Disc)\s+(\S+)\s+(.+)$') {
-                $State    = 'Disconnected'
+                $State = 'Disconnected'
                 $IdleTime = $Matches[4]
-                $Logon    = $Matches[5].Trim()
+                $Logon = $Matches[5].Trim()
             }
 
             # Emit a structured object (NOT Write-Host) so output is pipeline-friendly

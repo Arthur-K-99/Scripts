@@ -24,6 +24,9 @@
 .EXAMPLE
     # Report only (no changes)
     .\Extend-ExpiringUsers.ps1 -DaysUntilExpiry 60
+    
+    # Preview with WhatIf
+    .\Extend-ExpiringUsers.ps1 -ExtendExpiration -WhatIf
 
     # Extend expiration dates
     .\Extend-ExpiringUsers.ps1 -DaysUntilExpiry 30 -ExtendExpiration

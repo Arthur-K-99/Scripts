@@ -1,0 +1,23 @@
+# Windows Thumbnail database files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Windows Recycle Bin
+$RECYCLE.BIN/
+
+# VS Code / IDE settings
+.vscode/
+.idea/
+.antigravitycli/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# PowerShell command history/temporary files
+.history/
+*.ps1xml
+*.clixml

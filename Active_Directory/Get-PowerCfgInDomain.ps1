@@ -73,6 +73,8 @@ $failedResults = foreach ($comp in $failedComputers) {
 
 # Combine and Export Results
 $finalResults = $powerAudit + $failedResults
-$finalResults | Export-Csv -Path $OutputPath -NoTypeInformation
+
+# Explicitly select only your intended columns
+$finalResults | Select-Object ComputerName, Status, S3_LegacySleep, S0_ModernStandby, Hibernate, Error | Export-Csv -Path $OutputPath -NoTypeInformation
 
 Write-Host "Audit complete. Results saved to $OutputPath" -ForegroundColor Green

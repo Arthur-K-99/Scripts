@@ -11,6 +11,7 @@ The repository is currently focused on PowerShell and Windows administration bec
 | `Active_Directory/` | Active Directory reporting, auditing, and user or computer administration |
 | `Printer_Install_Scripts/` | Printer installation and default-printer configuration |
 | `Prune_Old_User_Profiles/` | Removal of stale Windows user profiles |
+| `Remove_Aged_Files/` | Retention-based file cleanup with optional ACL repair and ownership takeover |
 
 ## Organization
 

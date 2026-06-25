@@ -81,6 +81,23 @@
     Audits specific computers and shows only user (not group) members.
 
 .EXAMPLE
+    .\Get-DomainLocalAdmins.ps1 -SearchBase "OU=Laptops,DC=contoso,DC=com" |
+        Format-Table ComputerName, MemberName, ObjectClass, PrincipalSource, Enabled -AutoSize
+
+    Lists local Administrators members and shows whether each local account is enabled. The
+    Enabled column is blank for domain principals and groups (their state is held in AD, not
+    on the machine).
+
+.EXAMPLE
+    .\Get-DomainLocalAdmins.ps1 -SearchBase "OU=Laptops,DC=contoso,DC=com" |
+        Where-Object { $_.PrincipalSource -eq 'Local' -and $_.Enabled } |
+        Format-Table ComputerName, MemberName, Enabled -AutoSize
+
+    Shows only the enabled local admin accounts - the ones that are actually usable and
+    therefore matter most for risk. Disabled accounts (such as the default built-in
+    Administrator) and domain principals are filtered out.
+
+.EXAMPLE
     .\Get-DomainLocalAdmins.ps1 -ExcludeBuiltIn |
         Group-Object MemberName |
         Sort-Object Count -Descending |

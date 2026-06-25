@@ -10,6 +10,7 @@ $RECYCLE.BIN/
 .vscode/
 .idea/
 .antigravitycli/
+.claude
 
 # Logs and temporary files
 *.log

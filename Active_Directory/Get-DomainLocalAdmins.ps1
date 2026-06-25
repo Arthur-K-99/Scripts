@@ -6,8 +6,12 @@
     This script queries Active Directory for computer objects and remotely enumerates the
     membership of each machine's built-in local Administrators group. It returns one row per
     group member, reporting the member's name, the domain/machine it belongs to, whether it
-    is a user or a group, whether the principal is local or an Active Directory object, and
-    its SID.
+    is a user or a group, whether the principal is local or an Active Directory object, its
+    SID, and (for local accounts) whether the account is enabled.
+
+    Group membership by itself does not reveal whether an account is enabled, so for local
+    user accounts the enabled state is resolved from Get-LocalUser on the target. The Enabled
+    column is left blank for domain principals and groups, whose state is not stored locally.
 
     The Administrators group is located by its well-known SID (S-1-5-32-544) rather than by
     name, so the script works correctly on non-English installations of Windows where the
@@ -166,6 +170,7 @@ begin {
                 MemberDomain    = $null
                 ObjectClass     = $null
                 PrincipalSource = $null
+                Enabled         = $null
                 SID             = $null
                 Error           = "Host did not respond to ping ($PingStatus)"
             }
@@ -177,6 +182,21 @@ begin {
             ErrorAction  = 'Stop'
             ScriptBlock  = {
                 $AdminsSid = 'S-1-5-32-544'
+
+                # Build a lookup of local accounts and their enabled state. Group membership alone
+                # does not reveal whether an account is enabled, so we resolve it from Get-LocalUser.
+                # Keyed by both SID (used by the primary method) and name (used by the fallback).
+                $LocalEnabledBySid = @{}
+                $LocalEnabledByName = @{}
+                try {
+                    Get-LocalUser -ErrorAction Stop | ForEach-Object {
+                        $LocalEnabledBySid[$_.SID.Value] = $_.Enabled
+                        $LocalEnabledByName[$_.Name] = $_.Enabled
+                    }
+                }
+                catch {
+                    Write-Verbose "Get-LocalUser failed: $($_.Exception.Message). Enabled state for local accounts will be unknown."
+                }
 
                 # Primary method: Get-LocalGroupMember by SID (locale-independent).
                 try {
@@ -190,12 +210,19 @@ begin {
                             $Domain = $null
                             $Account = $_.Name
                         }
+                        # Enabled state is only meaningful (and resolvable) for local accounts.
+                        $Enabled = if ($_.PrincipalSource.ToString() -eq 'Local' -and
+                            $LocalEnabledBySid.ContainsKey($_.SID.Value)) {
+                            $LocalEnabledBySid[$_.SID.Value]
+                        }
+                        else { $null }
                         [PSCustomObject]@{
                             MemberName      = $Account
                             MemberDomain    = $Domain
                             ObjectClass     = $_.ObjectClass
                             PrincipalSource = $_.PrincipalSource.ToString()
                             SID             = $_.SID.Value
+                            Enabled         = $Enabled
                             Method          = 'Get-LocalGroupMember'
                         }
                     }
@@ -228,12 +255,20 @@ begin {
                         $Domain = $null
                         $Account = $Entry
                     }
+                    # The local machine name as the "domain" indicates a local account; resolve its
+                    # enabled state by name. Anything else is a domain principal (unknown here).
+                    $IsLocal = (-not $Domain) -or ($Domain -eq $env:COMPUTERNAME)
+                    $Enabled = if ($IsLocal -and $LocalEnabledByName.ContainsKey($Account)) {
+                        $LocalEnabledByName[$Account]
+                    }
+                    else { $null }
                     [PSCustomObject]@{
                         MemberName      = $Account
                         MemberDomain    = $Domain
                         ObjectClass     = 'Unknown'
                         PrincipalSource = 'Unknown'
                         SID             = $null
+                        Enabled         = $Enabled
                         Method          = 'net localgroup'
                     }
                 }
@@ -252,6 +287,7 @@ begin {
                     MemberDomain    = $null
                     ObjectClass     = $null
                     PrincipalSource = $null
+                    Enabled         = $null
                     SID             = $null
                     Error           = 'No members enumerated'
                 }
@@ -265,6 +301,7 @@ begin {
                     MemberDomain    = $Member.MemberDomain
                     ObjectClass     = $Member.ObjectClass
                     PrincipalSource = $Member.PrincipalSource
+                    Enabled         = $Member.Enabled
                     SID             = $Member.SID
                     Error           = $null
                 }
@@ -280,6 +317,7 @@ begin {
                 MemberDomain    = $null
                 ObjectClass     = $null
                 PrincipalSource = $null
+                Enabled         = $null
                 SID             = $null
                 Error           = $Msg
             }
